@@ -50,3 +50,10 @@ DistributedWorker(\"localhost\", 10000, lambda);
         error e;
     end try;
 end intrinsic;
+
+// Function to test Parallelism implementations.
+intrinsic testSleep(x::RngIntElt) -> RngIntElt
+{}
+    Sleep(x);
+    return 0;
+end intrinsic;
