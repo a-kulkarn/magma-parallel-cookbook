@@ -14,7 +14,7 @@ end intrinsic;
 intrinsic StartDistributedWorkers(file, N)
 {Start N DistributedWorker instances via system call, where the worker specifications
 appear in the file `file`.}
-    call_string := Sprintf("(sleep 0.01 && magma -b %o) &", file);
+    call_string := Sprintf("(sleep 0.10 && magma -b %o) &", file);
     for i in [1..N] do
         // Launch and detach the worker with a slight delay to allow the manager
         // to set up the port.
