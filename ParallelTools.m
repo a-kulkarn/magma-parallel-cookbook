@@ -57,3 +57,12 @@ intrinsic testSleep(x::RngIntElt) -> RngIntElt
     Sleep(x);
     return 0;
 end intrinsic;
+
+intrinsic KillProcessOnPort(port)
+{Kills all processes listening on the given port.}
+    killString := Sprintf("kill -9 $(fuser %o/tcp 2>/dev/null)", port);
+
+    // NOTE: If there is nothing to kill, System call will print.
+    System(killString);
+    return;
+end intrinsic;
