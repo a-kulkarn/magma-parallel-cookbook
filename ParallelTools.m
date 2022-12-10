@@ -14,7 +14,8 @@ end intrinsic;
 intrinsic StartDistributedWorkers(file, N)
 {Start N DistributedWorker instances via system call, where the worker specifications
 appear in the file `file`.}
-    call_string := Sprintf("(sleep 0.10 && magma -b %o) &", file);
+    call_string := Sprintf("(export MAGMA_WORKER_INSTANCE=1 && sleep 0.10 && magma -b %o) &",
+                           file);
     for i in [1..N] do
         // Launch and detach the worker with a slight delay to allow the manager
         // to set up the port.
@@ -65,4 +66,9 @@ intrinsic KillProcessOnPort(port)
     // NOTE: If there is nothing to kill, System call will print.
     System(killString);
     return;
+end intrinsic;
+
+intrinsic IsWorkerProcess() -> BoolElt
+{Determines if this file has been launched as a worker.}
+    return GetEnv("MAGMA_WORKER_INSTANCE") eq "1";
 end intrinsic;
