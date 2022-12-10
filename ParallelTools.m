@@ -61,9 +61,8 @@ end intrinsic;
 
 intrinsic KillProcessOnPort(port)
 {Kills all processes listening on the given port.}
-    killString := Sprintf("kill -9 $(fuser %o/tcp 2>/dev/null)", port);
-
-    // NOTE: If there is nothing to kill, System call will print.
+    // TODO: Doesn't work on Mac...
+    killString := Sprintf("killthese=$(fuser %o/tcp 2>/dev/null) && kill -9 $killthese", port);
     System(killString);
     return;
 end intrinsic;
@@ -71,4 +70,38 @@ end intrinsic;
 intrinsic IsWorkerProcess() -> BoolElt
 {Determines if this file has been launched as a worker.}
     return GetEnv("MAGMA_WORKER_INSTANCE") eq "1";
+end intrinsic;
+
+intrinsic DefaultParallelSetup(: LocalHost := "localhost", LocalPort := 10000)
+          -> MonStgElt, RngIntElt
+{Return the default host/port/socket information.}
+    return LocalHost, LocalPort;
+end intrinsic;
+
+
+intrinsic DoWorkThenDie(fun : LocalHost:="localhost", LocalPort:=10000)
+{Launch a worker instance of the function `fun`. Connects to a currently
+open manager process. Then terminate magma.}
+    DistributedWorker(LocalHost, LocalPort, fun);
+    quit;
+end intrinsic;
+
+intrinsic ActivateWorkers(tasks, filename
+                            : Ncores:=1, LocalHost:="localhost", LocalPort:=10000) -> Any
+{Runs the code in `file` in parallel, with workers receiving elements of `tasks` as input.}
+
+    // Socket setup.
+    socket := Socket(: LocalHost:=LocalHost, LocalPort:=LocalPort);
+    
+    StartDistributedWorkers(filename, Ncores);
+    results := DistributedManager(socket, tasks);
+
+    // Resource cleanup.
+    delete socket;
+
+    // TODO: Consider aggresively killing the workers still connected to the port.
+    // KillProcessOnPort(LocalPort);
+
+    // Return.
+    return results;
 end intrinsic;
